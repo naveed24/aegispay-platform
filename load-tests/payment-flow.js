@@ -26,7 +26,7 @@ export default function () {
   const response = http.post('http://localhost:8080/api/payments', payload, {
     headers: {
       'Content-Type': 'application/json',
-      'Idempotency-Key': crypto.randomUUID ? crypto.randomUUID() : String(Math.random()),
+      'Idempotency-Key': `${__VU}-${__ITER}-${Date.now()}-${Math.random()}`,
       ...(apiKey ? { 'X-API-Key': apiKey } : {})
     }
   });
