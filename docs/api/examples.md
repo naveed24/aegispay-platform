@@ -8,11 +8,14 @@ curl -X POST http://localhost:8080/api/merchants \
   -d '{"name":"Demo Store","webhookUrl":"https://example.com/webhooks/aegispay"}'
 ```
 
+The create-merchant response returns an `apiKey` once. Save it securely.
+
 Create a payment:
 
 ```bash
 curl -X POST http://localhost:8080/api/payments \
   -H 'Content-Type: application/json' \
+  -H 'X-API-Key: <merchant-api-key>' \
   -H 'Idempotency-Key: 1c17ee94-8bcb-4d03-9b4f-339281779afb' \
   -d '{"merchantId":"<merchant-id>","amount":2500,"currency":"INR"}'
 ```
