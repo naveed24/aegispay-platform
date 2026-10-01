@@ -25,10 +25,12 @@ public class PaymentController {
     @ResponseStatus(HttpStatus.CREATED)
     public Payment create(
             @RequestHeader("Idempotency-Key") @NotBlank String idempotencyKey,
+            @RequestHeader("X-API-Key") @NotBlank String apiKey,
             @Valid @RequestBody CreatePaymentRequest request) {
         return orchestrator.create(
                 new CreatePaymentCommand(request.merchantId(), request.amount(), request.currency()),
-                idempotencyKey);
+                idempotencyKey,
+                apiKey);
     }
 
     @GetMapping
