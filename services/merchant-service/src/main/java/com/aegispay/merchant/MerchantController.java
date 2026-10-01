@@ -21,34 +21,44 @@ public class MerchantController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Merchant create(@Valid @RequestBody CreateMerchantRequest request) {
+    public CreatedMerchant create(@Valid @RequestBody CreateMerchantRequest request) {
         byte[] bytes = new byte[24];
         random.nextBytes(bytes);
-        return repository.save(new Merchant(
+        Merchant merchant = repository.save(new Merchant(
                 UUID.randomUUID(),
                 request.name(),
                 "agp_" + HexFormat.of().formatHex(bytes),
                 request.webhookUrl()));
+        return new CreatedMerchant(
+                merchant.getId().toString(),
+                merchant.getName(),
+                merchant.getApiKey(),
+                merchant.getWebhookUrl(),
+                merchant.isActive());
     }
 
     @GetMapping
-    public List<Merchant> list() {
-        return repository.findAll();
+    public List<MerchantSummary> list() {
+        return repository.findAll().stream().map(MerchantController::summary).toList();
     }
 
     @GetMapping("/{id}")
-    public Merchant get(@PathVariable UUID id) {
-        return repository.findById(id).orElseThrow(() -> new MerchantNotFoundException(id));
+    public MerchantSummary get(@PathVariable UUID id) {
+        return summary(repository.findById(id).orElseThrow(() -> new MerchantNotFoundException(id)));
     }
 
-    @GetMapping("/{id}/webhook")
-    public WebhookConfig webhook(@PathVariable UUID id) {
-        Merchant merchant = get(id);
-        return new WebhookConfig(merchant.getId().toString(), merchant.getWebhookUrl(), merchant.isActive());
+    private static MerchantSummary summary(Merchant merchant) {
+        return new MerchantSummary(
+                merchant.getId().toString(),
+                merchant.getName(),
+                merchant.getWebhookUrl(),
+                merchant.isActive(),
+                merchant.getCreatedAt());
     }
 
     public record CreateMerchantRequest(@NotBlank String name, String webhookUrl) {}
-    public record WebhookConfig(String merchantId, String webhookUrl, boolean active) {}
+    public record CreatedMerchant(String id, String name, String apiKey, String webhookUrl, boolean active) {}
+    public record MerchantSummary(String id, String name, String webhookUrl, boolean active, java.time.Instant createdAt) {}
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     static class MerchantNotFoundException extends RuntimeException {
