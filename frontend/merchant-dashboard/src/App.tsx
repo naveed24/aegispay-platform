@@ -26,6 +26,7 @@ export default function App() {
   const [merchantId, setMerchantId] = useState('');
   const [amount, setAmount] = useState('1000');
   const [currency, setCurrency] = useState('INR');
+  const [apiKey, setApiKey] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -70,7 +71,8 @@ export default function App() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Idempotency-Key': crypto.randomUUID()
+          'Idempotency-Key': crypto.randomUUID(),
+          'X-API-Key': apiKey
         },
         body: JSON.stringify({ merchantId, amount: Number(amount), currency })
       });
@@ -105,6 +107,9 @@ export default function App() {
         <div className="panel">
           <div className="panelTitle"><h2>Simulate payment</h2><span>Idempotent API</span></div>
           <form onSubmit={submitPayment}>
+            <label>Merchant API key
+              <input value={apiKey} onChange={e => setApiKey(e.target.value)} placeholder="agp_..." type="password" required />
+            </label>
             <label>Merchant
               <select value={merchantId} onChange={e => setMerchantId(e.target.value)} required>
                 <option value="">Create a merchant through API first</option>
@@ -119,7 +124,7 @@ export default function App() {
                 </select>
               </label>
             </div>
-            <button disabled={busy || !merchantId}>{busy ? 'Processing…' : 'Process payment'}</button>
+            <button disabled={busy || !merchantId || !apiKey}>{busy ? 'Processing…' : 'Process payment'}</button>
             {error && <p className="error">{error}</p>}
           </form>
         </div>
