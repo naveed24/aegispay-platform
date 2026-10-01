@@ -1,0 +1,123 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: merchant-service
+  namespace: aegispay
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: merchant-service }
+  template:
+    metadata:
+      labels: { app: merchant-service }
+    spec:
+      containers:
+        - name: merchant-service
+          image: ghcr.io/naveed24/aegispay-platform/merchant-service:latest
+          ports: [{ containerPort: 8082 }]
+          envFrom: [{ secretRef: { name: aegispay-secrets } }]
+          env:
+            - name: DB_URL
+              value: jdbc:postgresql://postgres.example.internal:5432/merchant_db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: merchant-service
+  namespace: aegispay
+spec:
+  selector: { app: merchant-service }
+  ports: [{ port: 8082, targetPort: 8082 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: settlement-service
+  namespace: aegispay
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: settlement-service }
+  template:
+    metadata:
+      labels: { app: settlement-service }
+    spec:
+      containers:
+        - name: settlement-service
+          image: ghcr.io/naveed24/aegispay-platform/settlement-service:latest
+          ports: [{ containerPort: 8085 }]
+          envFrom:
+            - configMapRef: { name: aegispay-config }
+            - secretRef: { name: aegispay-secrets }
+          env:
+            - name: DB_URL
+              value: jdbc:postgresql://postgres.example.internal:5432/settlement_db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: settlement-service
+  namespace: aegispay
+spec:
+  selector: { app: settlement-service }
+  ports: [{ port: 8085, targetPort: 8085 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webhook-service
+  namespace: aegispay
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: webhook-service }
+  template:
+    metadata:
+      labels: { app: webhook-service }
+    spec:
+      containers:
+        - name: webhook-service
+          image: ghcr.io/naveed24/aegispay-platform/webhook-service:latest
+          ports: [{ containerPort: 8086 }]
+          envFrom:
+            - configMapRef: { name: aegispay-config }
+            - secretRef: { name: aegispay-secrets }
+          env:
+            - name: DB_URL
+              value: jdbc:postgresql://postgres.example.internal:5432/webhook_db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webhook-service
+  namespace: aegispay
+spec:
+  selector: { app: webhook-service }
+  ports: [{ port: 8086, targetPort: 8086 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboard
+  namespace: aegispay
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: dashboard }
+  template:
+    metadata:
+      labels: { app: dashboard }
+    spec:
+      containers:
+        - name: dashboard
+          image: ghcr.io/naveed24/aegispay-platform/dashboard:latest
+          ports: [{ containerPort: 80 }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dashboard
+  namespace: aegispay
+spec:
+  selector: { app: dashboard }
+  ports: [{ port: 80, targetPort: 80 }]
