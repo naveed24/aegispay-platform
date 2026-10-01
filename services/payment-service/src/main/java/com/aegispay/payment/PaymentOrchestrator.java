@@ -13,14 +13,28 @@ public class PaymentOrchestrator {
     private final PaymentRepository payments;
     private final PaymentFinalizer finalizer;
     private final RestClient fraudClient;
+    private final RestClient merchantClient;
 
-    public PaymentOrchestrator(PaymentRepository payments, PaymentFinalizer finalizer, RestClient fraudClient) {
+    public PaymentOrchestrator(
+            PaymentRepository payments,
+            PaymentFinalizer finalizer,
+            RestClient fraudClient,
+            RestClient merchantClient) {
         this.payments = payments;
         this.finalizer = finalizer;
         this.fraudClient = fraudClient;
+        this.merchantClient = merchantClient;
     }
 
-    public Payment create(CreatePaymentCommand command, String idempotencyKey) {
+    public Payment create(CreatePaymentCommand command, String idempotencyKey, String apiKey) {
+        merchantClient.post()
+                .uri(uri -> uri.path("/internal/merchants/validate")
+                        .queryParam("merchantId", command.merchantId())
+                        .build())
+                .header("X-API-Key", apiKey)
+                .retrieve()
+                .toBodilessEntity();
+
         String requestHash = RequestHasher.hash(command.merchantId(), command.amount(), command.currency());
 
         var existing = payments.findByIdempotencyKey(idempotencyKey);
