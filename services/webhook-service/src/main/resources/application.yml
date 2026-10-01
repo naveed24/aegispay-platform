@@ -1,0 +1,33 @@
+server:
+  port: ${SERVER_PORT:8086}
+spring:
+  application:
+    name: webhook-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/webhook_db}
+    username: ${DB_USER:aegis}
+    password: ${DB_PASSWORD:aegis}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: false
+services:
+  merchant: ${MERCHANT_SERVICE_URL:http://localhost:8082}
+webhook:
+  signing-secret: ${WEBHOOK_SIGNING_SECRET:dev-only-secret}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
