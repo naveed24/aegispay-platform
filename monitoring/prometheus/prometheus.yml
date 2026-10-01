@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: aegispay
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - api-gateway:8080
+          - merchant-service:8082
+          - payment-service:8081
+          - fraud-service:8083
+          - ledger-service:8084
+          - settlement-service:8085
+          - webhook-service:8086
