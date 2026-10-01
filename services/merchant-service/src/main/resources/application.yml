@@ -1,0 +1,22 @@
+server:
+  port: ${SERVER_PORT:8082}
+spring:
+  application:
+    name: merchant-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/merchant_db}
+    username: ${DB_USER:aegis}
+    password: ${DB_PASSWORD:aegis}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
