@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+  namespace: aegispay
+spec:
+  replicas: 3
+  selector:
+    matchLabels: { app: payment-service }
+  template:
+    metadata:
+      labels: { app: payment-service }
+    spec:
+      containers:
+        - name: payment-service
+          image: ghcr.io/naveed24/aegispay-platform/payment-service:latest
+          ports: [{ containerPort: 8081 }]
+          envFrom:
+            - configMapRef: { name: aegispay-config }
+            - secretRef: { name: aegispay-secrets }
+          env:
+            - name: DB_URL
+              value: jdbc:postgresql://postgres.example.internal:5432/payment_db
+          readinessProbe:
+            httpGet: { path: /actuator/health/readiness, port: 8081 }
+            initialDelaySeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service
+  namespace: aegispay
+spec:
+  selector: { app: payment-service }
+  ports: [{ port: 8081, targetPort: 8081 }]
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: payment-service
+  namespace: aegispay
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: payment-service
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: { type: Utilization, averageUtilization: 60 }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fraud-service
+  namespace: aegispay
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: fraud-service }
+  template:
+    metadata:
+      labels: { app: fraud-service }
+    spec:
+      containers:
+        - name: fraud-service
+          image: ghcr.io/naveed24/aegispay-platform/fraud-service:latest
+          ports: [{ containerPort: 8083 }]
+          envFrom: [{ configMapRef: { name: aegispay-config } }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fraud-service
+  namespace: aegispay
+spec:
+  selector: { app: fraud-service }
+  ports: [{ port: 8083, targetPort: 8083 }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ledger-service
+  namespace: aegispay
+spec:
+  replicas: 3
+  selector:
+    matchLabels: { app: ledger-service }
+  template:
+    metadata:
+      labels: { app: ledger-service }
+    spec:
+      containers:
+        - name: ledger-service
+          image: ghcr.io/naveed24/aegispay-platform/ledger-service:latest
+          ports: [{ containerPort: 8084 }]
+          envFrom:
+            - configMapRef: { name: aegispay-config }
+            - secretRef: { name: aegispay-secrets }
+          env:
+            - name: DB_URL
+              value: jdbc:postgresql://postgres.example.internal:5432/ledger_db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ledger-service
+  namespace: aegispay
+spec:
+  selector: { app: ledger-service }
+  ports: [{ port: 8084, targetPort: 8084 }]
