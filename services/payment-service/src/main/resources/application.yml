@@ -18,6 +18,7 @@ spring:
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 services:
   fraud: ${FRAUD_SERVICE_URL:http://localhost:8083}
+  merchant: ${MERCHANT_SERVICE_URL:http://localhost:8082}
 management:
   endpoints:
     web:
