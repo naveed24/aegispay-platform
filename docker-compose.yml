@@ -70,6 +70,7 @@ services:
       DB_PASSWORD: aegis
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       FRAUD_SERVICE_URL: http://fraud-service:8083
+      MERCHANT_SERVICE_URL: http://merchant-service:8082
     depends_on: [postgres, kafka, fraud-service]
     ports: ["8081:8081"]
 
