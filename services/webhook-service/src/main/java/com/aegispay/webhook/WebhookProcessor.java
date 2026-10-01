@@ -38,7 +38,7 @@ public class WebhookProcessor {
         for (WebhookDelivery delivery : due) {
             try {
                 WebhookConfig config = merchantClient.get()
-                        .uri("/api/merchants/{id}/webhook", delivery.getMerchantId())
+                        .uri("/internal/merchants/{id}/webhook", delivery.getMerchantId())
                         .retrieve()
                         .body(WebhookConfig.class);
 
